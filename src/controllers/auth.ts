@@ -5,32 +5,41 @@ import * as jwt from  'jsonwebtoken';
 import { JWT_SECRET } from "../secrets";
 import { badrequestException } from "../exceptions/badrequest";
 import { ErrorCode } from "../exceptions/root";
+import { UnprocessableEntity } from "../exceptions/validation";
+import { SignUpSchema } from "../schema/users";
 
-//the sign up end point starts
+    //the sign up end point starts
 export const signup = async ( req:Request, res:Response , next: NextFunction) => {
-    const {email,password,name} = req.body;
+    try {
+        SignUpSchema.parse(req.body)
+        const {email,password,name} = req.body;
 
-    let user = await prismaClient.user.findFirst({ where: { email } });
-
-    if (user) {
-      next (new badrequestException ('User Already Exist!',ErrorCode.USER_ALREADY_EXIST))
-    }
+        let user = await prismaClient.user.findFirst({ where: { email } });
     
-   //Create a new user with the hashed password
-    user = await prismaClient.user.create ({
-        data:{
-            name,
-            email,
-            password:hashSync(password,10)
-        },
-    });
-    res.json(user)
+        if (user) {
+          next (new badrequestException ('User Already Exist!',ErrorCode.USER_ALREADY_EXIST))
+        }
+        
+            //Create a new user with the hashed password
+        user = await prismaClient.user.create ({
+            data:{
+                name,
+                email,
+                password:hashSync(password,10)
+            },
+        });
+        res.json(user)
+
+    } catch (err :any) {
+        next (new UnprocessableEntity (err?.issues , 'Unprocessde entity' ,ErrorCode.UNPROCESSED_ENTITY))
+    }
+   
 }
-//the sign up endpoint ends
+    //the sign up endpoint ends
 
 
-//the login endpoint starts 
-export const login = async (req:Request,res:Response) => {
+    //the login endpoint starts 
+    export const login = async (req:Request,res:Response) => {
     const {email,password} = req.body;
 
     let user = await prismaClient.user.findFirst({ where: { email } });
@@ -50,5 +59,5 @@ export const login = async (req:Request,res:Response) => {
     res.json({user,token})
 }
 
-//the sign up endpoint ends
+    //the login endpoint ends
 
