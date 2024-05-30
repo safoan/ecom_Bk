@@ -7,20 +7,20 @@ import { badrequestException } from "../exceptions/badrequest";
 import { ErrorCode } from "../exceptions/root";
 import { UnprocessableEntity } from "../exceptions/validation";
 import { SignUpSchema } from "../schema/users";
+import { NotFoundException } from "../exceptions/not-found";
 
     //the sign up end point starts
 export const signup = async ( req:Request, res:Response , next: NextFunction) => {
-    try {
-        SignUpSchema.parse(req.body)
+    SignUpSchema.parse(req.body)
         const {email,password,name} = req.body;
 
         let user = await prismaClient.user.findFirst({ where: { email } });
     
         if (user) {
-          next (new badrequestException ('User Already Exist!',ErrorCode.USER_ALREADY_EXIST))
+          new badrequestException ('User Already Exist!',ErrorCode.USER_ALREADY_EXIST)
         }
         
-            //Create a new user with the hashed password
+    //Create a new user with the hashed password
         user = await prismaClient.user.create ({
             data:{
                 name,
@@ -28,13 +28,8 @@ export const signup = async ( req:Request, res:Response , next: NextFunction) =>
                 password:hashSync(password,10)
             },
         });
-        res.json(user)
-
-    } catch (err :any) {
-        next (new UnprocessableEntity (err?.issues , 'Unprocessde entity' ,ErrorCode.UNPROCESSED_ENTITY))
-    }
+        res.json(user)}
    
-}
     //the sign up endpoint ends
 
 
@@ -45,10 +40,10 @@ export const signup = async ( req:Request, res:Response , next: NextFunction) =>
     let user = await prismaClient.user.findFirst({ where: { email } });
 
     if (!user) {
-      throw Error('user does not existe');
+      throw new NotFoundException ('User not Found',ErrorCode.USER_NOT_FOUND)
     }
     if (!compareSync(password,user.password)) {
-        throw Error ('incorrect password')
+        throw new badrequestException ('incorrect Password' ,ErrorCode.INCORRECT_PASSWORD)
     }
     const token = jwt.sign({
         userId: user.id

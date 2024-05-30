@@ -6,8 +6,8 @@ this repo is used to gain knowladge about how api's are built for Production
 
 
 # concepts implemented 
-
+schema validation 
 Seperation Of Logic
 Clean code
-Error Handling 
-Data Validation
+Generic Error Handling 
+Form Validation
