@@ -56,3 +56,11 @@ export const signup = async ( req:Request, res:Response , next: NextFunction) =>
 
     //the login endpoint ends
 
+
+    // /me -> return the logged in user 
+
+    export const me = async (req:Request,res:Response) => {
+
+       
+        res.json(req.user)
+    }
